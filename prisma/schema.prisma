@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  twitterId     String   @unique
+  username      String?
+  displayName   String?
+  profileImageUrl String?
+  accessToken   String?
+  refreshToken  String?
+  expiresAt     DateTime?
+  lastLoginAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  channels      Channel[]
+  @@index([username])
+}
+
+model Channel {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  type        String   // 'twitter' or 'linkedin'
+  name        String
+  isActive    Boolean  @default(true)
+  keys        Json   
+  configuration    Json   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, type])
+}
