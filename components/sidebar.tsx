@@ -7,14 +7,14 @@ import { useUser } from "@/hooks/use-user"
 import { 
   LayoutDashboard, 
   Settings, 
-  Calendar,
   LogOut,
-  User
+  User,
+  Brain
 } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
+  { name: "Personalities", href: "/personalities", icon: Brain },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
