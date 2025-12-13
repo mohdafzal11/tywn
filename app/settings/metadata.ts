@@ -1,5 +1,4 @@
-import { Sidebar } from "@/components/sidebar"
-import type { Metadata } from "next"
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Settings - Tywn",
@@ -15,21 +14,4 @@ export const metadata: Metadata = {
     title: "Settings - Tywn",
     description: "Configure your Tywn account settings, including Twitter channel credentials and posting schedule.",
   },
-}
-
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex h-screen bg-[#050505]">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
-    </div>
-  )
-}
+};

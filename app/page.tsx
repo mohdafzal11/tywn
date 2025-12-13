@@ -1,4 +1,21 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tywn - The Future of Social Connection",
+  description: "Welcome to Tywn, the next generation platform for social connection and engagement.",
+  keywords: ["social media", "connection", "tywn", "platform"],
+  openGraph: {
+    title: "Tywn - The Future of Social Connection",
+    description: "Welcome to Tywn, the next generation platform for social connection and engagement.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tywn - The Future of Social Connection",
+    description: "Welcome to Tywn, the next generation platform for social connection and engagement.",
+  },
+};
 
 export default function Home() {
   return (
