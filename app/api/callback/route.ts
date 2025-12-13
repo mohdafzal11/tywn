@@ -125,7 +125,7 @@ export async function GET(req: NextRequest) {
     // --- Redirect user to dashboard ---
     const baseUrl =
       process.env.NODE_ENV === "production"
-        ? "https://twyn-livid.vercel.app"
+        ? "https://tywn.vercel.app"
         : "http://localhost:3000";
 
     const response = NextResponse.redirect(`${baseUrl}/dashboard`);

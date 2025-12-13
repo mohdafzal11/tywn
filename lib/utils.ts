@@ -15,7 +15,7 @@ export function getPageUrl(path: string) {
 export function getApiUrl(path: string) {
   const isDevelopment = process.env.NODE_ENV === 'development'
   const baseUrl = isDevelopment ? 'http://localhost:3000' : 
-    (process.env.NEXT_PUBLIC_BASE_URL || 'https://twyn-livid.vercel.app/')
+    (process.env.NEXT_PUBLIC_BASE_URL || 'https://tywn.vercel.app')
   
   const cleanPath = path.trim()
   if (/^https?:\/\//i.test(cleanPath)) return cleanPath
