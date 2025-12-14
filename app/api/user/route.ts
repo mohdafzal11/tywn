@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // For now, we'll use a simple session cookie approach
-    // In a real app, you'd want to validate the session token properly
+
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
     
@@ -16,8 +15,6 @@ export async function GET() {
       );
     }
 
-    // Parse session data (this is a simplified approach)
-    // In production, you'd want to verify the session signature
     let sessionData;
     try {
       sessionData = JSON.parse(decodeURIComponent(sessionCookie));
@@ -35,13 +32,13 @@ export async function GET() {
       );
     }
 
-    // Fetch user from database
     const user = await prisma.user.findUnique({
       where: { id: sessionData.userId },
       select: {
         id: true,
         twitterId: true,
         username: true,
+        role: true,
         displayName: true,
         profileImageUrl: true,
         lastLoginAt: true,

@@ -20,3 +20,29 @@ export interface Channel {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface User {
+  id: string;
+  twitterId: string;
+  username?: string;
+  displayName?: string;
+  profileImageUrl?: string;
+  role: 'USER' | 'ADMIN';
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+  lastLoginAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Personality {
+  id: string
+  name: string
+  profileImageUrl: string | null
+  prompt: string
+  tags: string[]
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}

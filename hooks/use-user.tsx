@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/utils';
-
-interface User {
-  id: string;
-  twitterId: string;
-  username?: string;
-  displayName?: string;
-  profileImageUrl?: string;
-  lastLoginAt: string;
-  createdAt: string;
-}
+import { User } from '@/types';
 
 interface UseUserReturn {
   user: User | null;
