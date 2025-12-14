@@ -158,45 +158,53 @@ function SettingsPageContent() {
 
 
   const timeStringToDate = (time: string): Date | undefined => {
-  if (!time) return undefined
-  const [hours, minutes] = time.split(":").map(Number)
-  const date = new Date()
-  date.setHours(hours)
-  date.setMinutes(minutes)
-  date.setSeconds(0)
-  date.setMilliseconds(0)
-  return date
-}
+    if (!time) return undefined
+    const [hours, minutes] = time.split(":").map(Number)
+    const date = new Date()
+    date.setHours(hours)
+    date.setMinutes(minutes)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+    return date
+  }
 
-// Helper to convert Date → "14:30"
-const dateToTimeString = (date?: Date): string => {
-  return date ? format(date, "HH:mm") : ""
-}
+  // Helper to convert Date → "14:30"
+  const dateToTimeString = (date?: Date): string => {
+    return date ? format(date, "HH:mm") : ""
+  }
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="text-center text-muted-foreground">Loading settings...</div>
-      </div>
+      <AuthGuard>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#64FFDA]"></div>
+        </div>
+      </AuthGuard>
     );
   }
 
   if (!twitterChannel) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="text-center text-destructive">Failed to load Twitter channel.</div>
-      </div>
+      <AuthGuard>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center text-red-500">Failed to load Twitter channel.</div>
+        </div>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#E0E0E0] glow">Twitter Channel Settings</h1>
-        <p className="text-[#E0E0E0]/70 mt-2">
-          Configure your Twitter (X) API credentials and posting schedule
-        </p>
-      </div>
+    <AuthGuard>
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[#E0E0E0] glow">Twitter Channel Settings</h1>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-[#E0E0E0]/70">
+            Configure your Twitter (X) API credentials and posting schedule
+          </p>
+        </div>
 
       <div className="card">
         <div className="mb-6">
@@ -246,8 +254,8 @@ const dateToTimeString = (date?: Date): string => {
             </div>
           </div>
 
-        <div className="pt-8 border-t border-white/10">
-          <h3 className="text-lg font-semibold text-[#E0E0E0] mb-6 glow">Posting Schedule</h3>
+          <div className="pt-8 border-t border-white/10">
+            <h3 className="text-lg font-semibold text-[#E0E0E0] mb-6 glow">Posting Schedule</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <div className="space-y-2">
@@ -270,7 +278,7 @@ const dateToTimeString = (date?: Date): string => {
                 />
               </div>
             </div>
-           
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="time-between-posts">Min Time Between Posts (minutes)</Label>
@@ -308,15 +316,16 @@ const dateToTimeString = (date?: Date): string => {
       </div>
 
       <div className="flex justify-end mt-8">
-        <button 
-          onClick={saveSettings} 
-          disabled={saving} 
-          className="btn"
+        <Button
+          onClick={saveSettings}
+          disabled={saving}
+          className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90"
         >
           {saving ? 'Saving...' : 'Save Settings'}
-        </button>
+        </Button>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }
 

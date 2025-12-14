@@ -12,6 +12,19 @@ enum Role {
   ADMIN
 }
 
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostType {
+  POST
+  COMMENT
+  THREAD
+}
+
 model User {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   twitterId     String   @unique
@@ -27,6 +40,7 @@ model User {
   updatedAt     DateTime @updatedAt
 
   channels      Channel[]
+  posts         Post[]
   @@index([username])
 }
 
@@ -53,4 +67,18 @@ model Personality {
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Post {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String     @db.ObjectId
+  content     Json      
+  type        PostType   @default(POST)
+  status      PostStatus @default(DRAFT)
+  publishPostUrl     String?   
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

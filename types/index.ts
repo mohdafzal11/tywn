@@ -46,3 +46,20 @@ export interface Personality {
   createdAt: string
   updatedAt: string
 }
+
+export interface Post {
+  id: string
+  userId: string
+  content: {
+    tweetUrl?: string
+    text: string
+    image?: string
+  }
+  type: 'POST' | 'COMMENT' | 'THREAD'
+  status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED'
+  publishPostUrl?: string
+  scheduledAt: string | null
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
