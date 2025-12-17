@@ -13,18 +13,67 @@ export interface Personality {
 }
 
 const AI_MODELS: Record<string, AIModel> = {
-  gemini: {
+  'gemini-2.5-flash': {
     name: 'gemini-2.5-flash',
     apiKey: process.env.GEMINI_API_KEY || '',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+  },
+  'gemini-1.5-flash': {
+    name: 'gemini-1.5-flash',
+    apiKey: process.env.GEMINI_API_KEY || '',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+  },
+  'gemini-1.5-pro': {
+    name: 'gemini-1.5-pro',
+    apiKey: process.env.GEMINI_API_KEY || '',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent'
   }
   // Future models can be added here
-  // openai: { name: 'gpt-4', apiKey: process.env.OPENAI_API_KEY || '', endpoint: '...' }
   // claude: { name: 'claude-3', apiKey: process.env.CLAUDE_API_KEY || '', endpoint: '...' }
 }
 
 export class AIService {
   static async generatePost(topic: string, requirements: string, personality: Personality, model: string = 'gemini'): Promise<string> {
+    const fallbackModels = this.getFallbackModels(model)
+    
+    for (const currentModel of fallbackModels) {
+      try {
+        const result = await this.generatePostWithModel(topic, requirements, personality, currentModel)
+        return result
+      } catch (error) {
+        console.warn(`Failed to generate with ${currentModel}:`, error)
+        
+        // If this is the last model in the fallback list, throw the error
+        if (currentModel === fallbackModels[fallbackModels.length - 1]) {
+          throw error
+        }
+      }
+    }
+    
+    throw new Error('All models failed to generate content')
+  }
+
+  private static getFallbackModels(primaryModel: string): string[] {
+    const availableModels = this.getAvailableModels()
+    
+    // Only use Gemini models for fallback
+    const geminiModels = availableModels.filter(m => m.startsWith('gemini'))
+    
+    // Order Gemini models by preference (newer versions first)
+    const geminiOrder = ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash']
+    const orderedGeminiModels = geminiOrder.filter(m => geminiModels.includes(m))
+    
+    // Start with the primary model if it's available
+    if (availableModels.includes(primaryModel)) {
+      const remainingModels = orderedGeminiModels.filter(m => m !== primaryModel)
+      return [primaryModel, ...remainingModels]
+    }
+    
+    // If primary model is not available, use available Gemini models in preferred order
+    return orderedGeminiModels
+  }
+
+  private static async generatePostWithModel(topic: string, requirements: string, personality: Personality, model: string): Promise<string> {
     const aiModel = AI_MODELS[model]
     
     if (!aiModel || !aiModel.apiKey) {
@@ -48,7 +97,7 @@ Requirements:
 
 Please generate only the Twitter post content, no additional text or explanations.`
 
-    if (model === 'gemini') {
+    if (model.startsWith('gemini')) {
       return await AIService.generateWithGemini(prompt, aiModel)
     }
     
