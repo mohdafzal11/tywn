@@ -24,7 +24,15 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    return NextResponse.json(posts)
+    const formattedPosts = posts.map(post => ({
+      ...post,
+      scheduledAt: post.scheduledAt ? post.scheduledAt.toISOString() : null,
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString()
+    }))
+    
+    return NextResponse.json(formattedPosts)
   } catch (error) {
     return NextResponse.json(
       { 
@@ -69,7 +77,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(post, { status: 201 })
+    const formattedPost = {
+      ...post,
+      scheduledAt: post.scheduledAt ? post.scheduledAt.toISOString() : null,
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString()
+    }
+
+    return NextResponse.json(formattedPost, { status: 201 })
   } catch (error) {
     console.error('Error creating post:', error)
     return NextResponse.json(

@@ -3,11 +3,21 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
+    const postId = resolvedParams.id
+    
+    if (!postId) {
+      return NextResponse.json(
+        { error: 'Post ID is required' },
+        { status: 400 }
+      )
+    }
+    
     const post = await prisma.post.update({
-      where: { id: params.id },
+      where: { id: postId },
       data: {
         status: 'PUBLISHED',
         publishedAt: new Date()
@@ -24,7 +34,15 @@ export async function POST(
       }
     })
 
-    return NextResponse.json(post)
+    const formattedPost = {
+      ...post,
+      scheduledAt: post.scheduledAt ? post.scheduledAt.toISOString() : null,
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString()
+    }
+
+    return NextResponse.json(formattedPost)
   } catch (error) {
     console.error('Error publishing post:', error)
     return NextResponse.json(

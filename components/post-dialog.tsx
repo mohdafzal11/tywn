@@ -2,25 +2,26 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { X, Eye, Clock, Users, ImageIcon, Sparkles } from "lucide-react"
+import { X, Eye, Clock, ImageIcon, Sparkles, Trash2 } from "lucide-react"
 import { TwitterPreview } from "./twitter-preview"
 import { AiGenerationDialog } from "./ai-generation-dialog"
+import { toast } from "sonner"
 
 interface PostDialogProps {
   post?: any
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: any) => void
+  onDelete?: (post: any) => void
   selectedDate?: Date
   user?: {
     username?: string
     displayName?: string
-    profileImageUrl?: string
+    profileImageUrl: string
   }
 }
 
-export function PostDialog({ post, isOpen, onClose, onSubmit, selectedDate, user }: PostDialogProps) {
+export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selectedDate, user }: PostDialogProps) {
   const [formData, setFormData] = useState({
     content: {
       tweetUrl: post?.content?.tweetUrl || "",
@@ -28,19 +29,21 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, selectedDate, user
       image: post?.content?.image || ""
     },
     type: post?.type || 'POST',
-    action: post?.status === 'PUBLISHED' ? 'PUBLISH' : (post?.scheduledAt ? 'SCHEDULE' : 'DRAFT'),
+    action: post?.status === 'PUBLISHED' ? 'PUBLISH' : (post?.scheduledAt ? 'SCHEDULE' : (selectedDate ? 'SCHEDULE' : 'DRAFT')),
     scheduledAt: post?.scheduledAt 
       ? new Date(post.scheduledAt).toISOString().slice(0, 16) 
       : selectedDate 
-        ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 12, 0).toISOString().slice(0, 16)
+        ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), new Date().getHours(), new Date().getMinutes() + 30).toISOString().slice(0, 16)
         : "",
     status: post?.status || 'DRAFT'
   })
 
   const [showPreview, setShowPreview] = useState(true)
   const [showAiDialog, setShowAiDialog] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     let submitData: any = {
@@ -54,7 +57,7 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, selectedDate, user
     } else if (formData.action === 'SCHEDULE') {
       submitData.status = 'SCHEDULED'
       if (!submitData.scheduledAt) {
-        alert('Please select a schedule date and time')
+        toast.error('Please select a schedule date and time')
         return
       }
     } else {
@@ -62,7 +65,44 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, selectedDate, user
       submitData.scheduledAt = null
     }
 
-    onSubmit(submitData)
+    setIsSubmitting(true)
+    
+    try {
+      await onSubmit(submitData)
+      
+      // Show success toast based on action
+      if (formData.action === 'PUBLISH') {
+        toast.success('Post published successfully!')
+      } else if (formData.action === 'SCHEDULE') {
+        toast.success('Post scheduled successfully!')
+      } else {
+        toast.success('Post saved as draft!')
+      }
+      
+      handleClose()
+    } catch (error) {
+      console.error('Error saving post:', error)
+      toast.error('Failed to save post. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!post || !onDelete) return
+
+    setIsDeleting(true)
+    
+    try {
+      await onDelete(post)
+      toast.success('Post archived successfully!')
+      handleClose()
+    } catch (error) {
+      console.error('Error archiving post:', error)
+      toast.error('Failed to archive post. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleClose = () => {
@@ -281,22 +321,51 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, selectedDate, user
                           value={formData.scheduledAt}
                           onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
                           className="w-full pl-10 pr-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-                          min={new Date().toISOString().slice(0, 16)}
+                          step="1"
                         />
                       </div>
                       <div className="text-xs text-[#E0E0E0]/50 mt-1">
-                        Select when you want this post to be published
+                        Select when you want this post to be published. You can choose any date and time, including past dates.
                       </div>
                     </div>
                   )}
 
                   <div className="flex gap-3 pt-4">
-                    <Button type="submit" className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
-                      Save Post
+                    {post && onDelete && (
+                      <Button 
+                        type="button" 
+                        onClick={handleDelete}
+                        disabled={isSubmitting || isDeleting}
+                        variant="outline"
+                        className="border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-500/50"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400 mr-2"></div>
+                            Archiving...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Archive
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button type="submit" disabled={isSubmitting || isDeleting} className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#050505] mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Post'
+                      )}
                     </Button>
                     <Button 
                       type="button" 
                       onClick={handleClose}
+                      disabled={isSubmitting || isDeleting}
                       variant="outline"
                       className="border-white/10 text-[#E0E0E0]/70 hover:text-[#64FFDA] hover:border-[#64FFDA]"
                     >

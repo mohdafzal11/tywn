@@ -141,6 +141,7 @@ export function PostCalendar({ posts, onPostClick, onCreatePost }: PostCalendarP
 
           const dayPosts = getPostsForDate(day)
           const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString()
+          const isPastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
 
           return (
             <div
@@ -187,13 +188,20 @@ export function PostCalendar({ posts, onPostClick, onCreatePost }: PostCalendarP
               
               <div className="mt-auto pt-1">
                 <button
-                  className="w-full text-xs text-[#64FFDA] hover:bg-[#64FFDA]/10 rounded py-0.5 transition-colors"
+                  className={`w-full text-xs rounded py-0.5 transition-colors ${
+                    isPastDate 
+                      ? 'text-[#E0E0E0]/30 cursor-not-allowed' 
+                      : 'text-[#64FFDA] hover:bg-[#64FFDA]/10'
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation()
-                    onCreatePost(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
+                    if (!isPastDate) {
+                      onCreatePost(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
+                    }
                   }}
+                  disabled={isPastDate}
                 >
-                  + Add Post
+                  {isPastDate ? 'Past Date' : '+ Add Post'}
                 </button>
               </div>
             </div>
