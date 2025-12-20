@@ -2,10 +2,30 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { X, Eye, Clock, ImageIcon, Sparkles, Trash2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+import { Eye, ImageIcon, Sparkles, Trash2, Clock } from "lucide-react"
 import { TwitterPreview } from "./twitter-preview"
 import { AiGenerationDialog } from "./ai-generation-dialog"
 import { toast } from "sonner"
+import { Separator } from "@/components/ui/separator"
 
 interface PostDialogProps {
   post?: any
@@ -30,9 +50,9 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
     },
     type: post?.type || 'POST',
     action: post?.status === 'PUBLISHED' ? 'PUBLISH' : (post?.scheduledAt ? 'SCHEDULE' : (selectedDate ? 'SCHEDULE' : 'DRAFT')),
-    scheduledAt: post?.scheduledAt 
-      ? new Date(post.scheduledAt).toISOString().slice(0, 16) 
-      : selectedDate 
+    scheduledAt: post?.scheduledAt
+      ? new Date(post.scheduledAt).toISOString().slice(0, 16)
+      : selectedDate
         ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), new Date().getHours(), new Date().getMinutes() + 30).toISOString().slice(0, 16)
         : "",
     status: post?.status || 'DRAFT'
@@ -45,7 +65,7 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    /* ... logic reuse ... */
     let submitData: any = {
       ...formData,
       scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt).toISOString() : null
@@ -66,19 +86,13 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
     }
 
     setIsSubmitting(true)
-    
+
     try {
       await onSubmit(submitData)
-      
-      // Show success toast based on action
-      if (formData.action === 'PUBLISH') {
-        toast.success('Post published successfully!')
-      } else if (formData.action === 'SCHEDULE') {
-        toast.success('Post scheduled successfully!')
-      } else {
-        toast.success('Post saved as draft!')
-      }
-      
+      if (formData.action === 'PUBLISH') toast.success('Post published successfully!')
+      else if (formData.action === 'SCHEDULE') toast.success('Post scheduled successfully!')
+      else toast.success('Post saved as draft!')
+
       handleClose()
     } catch (error) {
       console.error('Error saving post:', error)
@@ -90,9 +104,7 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
 
   const handleDelete = async () => {
     if (!post || !onDelete) return
-
     setIsDeleting(true)
-    
     try {
       await onDelete(post)
       toast.success('Post archived successfully!')
@@ -106,12 +118,9 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
   }
 
   const handleClose = () => {
+    // Reset form logic
     setFormData({
-      content: {
-        tweetUrl: "",
-        text: "",
-        image: ""
-      },
+      content: { tweetUrl: "", text: "", image: "" },
       type: 'POST',
       action: 'DRAFT',
       scheduledAt: "",
@@ -122,262 +131,158 @@ export function PostDialog({ post, isOpen, onClose, onSubmit, onDelete, selected
   }
 
   const handleAiGeneratedText = (generatedText: string) => {
-    setFormData({
-      ...formData,
-      content: {
-        ...formData.content,
-        text: generatedText
-      }
-    })
+    setFormData({ ...formData, content: { ...formData.content, text: generatedText } })
   }
-
-  if (!isOpen) return null
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#0c0c0c] border border-white/10 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-[#E0E0E0]">
-                {post ? "Edit Post" : "Create Post"}
-              </h2>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="text-[#E0E0E0]/70 hover:text-[#64FFDA]"
-                >
-                  <Eye className="h-4 w-4" />
-                  {showPreview ? "Hide Preview" : "Show Preview"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleClose}
-                  className="text-[#E0E0E0]/70 hover:text-[#64FFDA]"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{post ? "Edit Post" : "Create Post"}</DialogTitle>
+            <DialogDescription>Create or edit your content schedule.</DialogDescription>
+          </DialogHeader>
 
-            <div className="flex gap-6">
-              {/* Preview Section */}
-              {showPreview && (
-                <div className="w-96">
-                  <div className="sticky top-6">
-                    <h3 className="text-sm font-medium text-[#E0E0E0]/70 mb-3">Preview</h3>
-                    <TwitterPreview
-                      content={formData.content}
-                      type={formData.type}
-                      username={user?.username}
-                      displayName={user?.displayName}
-                      profileImageUrl={user?.profileImageUrl}
+          <div className="flex flex-col md:flex-row gap-6 py-4">
+            {/* Main Form */}
+            <div className="flex-1 space-y-4">
+              <form id="post-form" onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Post Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(val: any) => setFormData({ ...formData, type: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="POST">Post</SelectItem>
+                      <SelectItem value="COMMENT">Comment</SelectItem>
+                      <SelectItem value="THREAD">Thread</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.type === 'COMMENT' && (
+                  <div className="space-y-2">
+                    <Label>Tweet URL to Reply To</Label>
+                    <Input
+                      placeholder="https://twitter.com/..."
+                      value={formData.content.tweetUrl}
+                      onChange={e => setFormData({ ...formData, content: { ...formData.content, tweetUrl: e.target.value } })}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label>Post Content</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-xs text-primary"
+                      onClick={() => setShowAiDialog(true)}
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Generate with AI
+                    </Button>
+                  </div>
+                  <Textarea
+                    className="h-32 resize-none"
+                    placeholder={formData.type === 'COMMENT' ? "What's your reply?" : "What's on your mind?"}
+                    value={formData.content.text}
+                    onChange={e => setFormData({ ...formData, content: { ...formData.content, text: e.target.value } })}
+                    maxLength={280}
+                  />
+                  <p className="text-xs text-muted-foreground text-right">{formData.content.text.length}/280</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Image URL (Optional)</Label>
+                  <div className="relative">
+                    <ImageIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-9"
+                      placeholder="https://..."
+                      value={formData.content.image}
+                      onChange={e => setFormData({ ...formData, content: { ...formData.content, image: e.target.value } })}
                     />
                   </div>
                 </div>
-              )}
 
-              {/* Form Section */}
-              <div className="flex-1">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                      Post Type
-                    </label>
-                    <select
-                      value={formData.type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'POST' | 'COMMENT' | 'THREAD' })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-                    >
-                      <option value="POST">Post</option>
-                      <option value="COMMENT">Comment</option>
-                      <option value="THREAD">Thread</option>
-                    </select>
-                    <div className="text-xs text-[#E0E0E0]/50 mt-1">
-                      {formData.type === 'POST' && 'Create a new post'}
-                      {formData.type === 'COMMENT' && 'Reply to an existing post'}
-                      {formData.type === 'THREAD' && 'Start a thread conversation'}
-                    </div>
-                  </div>
+                <Separator className="my-4" />
 
-                  {formData.type === 'COMMENT' && (
-                    <div>
-                      <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                        Tweet URL to Reply To
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.content.tweetUrl}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          content: { ...formData.content, tweetUrl: e.target.value }
-                        })}
-                        className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-                        placeholder="https://twitter.com/username/status/1234567890123456789"
-                      />
-                      <div className="text-xs text-[#E0E0E0]/50 mt-1">
-                        Paste full Twitter URL of tweet you want to comment on
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                      Post Text
-                    </label>
-                    <textarea
-                      value={formData.content.text}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        content: { ...formData.content, text: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA] h-32 resize-none"
-                      placeholder={formData.type === 'COMMENT' ? "What's your reply?" : formData.type === 'THREAD' ? "Start your thread..." : "What's on your mind?"}
-                      required
-                      maxLength={280}
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="text-xs text-[#E0E0E0]/50">
-                        {formData.content.text.length}/280 characters
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={() => setShowAiDialog(true)}
-                        className="bg-[#64FFDA]/20 text-[#64FFDA] hover:bg-[#64FFDA]/30 border border-[#64FFDA]/30"
-                        size="sm"
-                      >
-                        <Sparkles className="h-4 w-4 mr-1" />
-                        Generate with AI
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                      Image URL (optional)
-                    </label>
-                    <div className="relative">
-                      <ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#E0E0E0]/50" />
-                      <input
-                        type="url"
-                        value={formData.content.image}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          content: { ...formData.content, image: e.target.value }
-                        })}
-                        className="w-full pl-10 pr-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                    {formData.content.image && (
-                      <div>
-                        <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                          Image Preview
-                        </label>
-                        <img
-                          src={formData.content.image}
-                          alt="Preview"
-                          className="max-w-full h-auto rounded-lg border border-white/10 max-h-48 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                      Action
-                    </label>
-                    <select
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select
                       value={formData.action}
-                      onChange={(e) => setFormData({ ...formData, action: e.target.value as 'DRAFT' | 'SCHEDULE' | 'PUBLISH' })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
+                      onValueChange={(val: any) => setFormData({ ...formData, action: val })}
                     >
-                      <option value="DRAFT">Save as Draft</option>
-                      <option value="SCHEDULE">Schedule Post</option>
-                      <option value="PUBLISH">Publish Now</option>
-                    </select>
-                    <div className="text-xs text-[#E0E0E0]/50 mt-1">
-                      {formData.action === 'DRAFT' && 'Save post without publishing'}
-                      {formData.action === 'SCHEDULE' && 'Schedule post for later publishing'}
-                      {formData.action === 'PUBLISH' && 'Publish post immediately'}
-                    </div>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DRAFT">Draft</SelectItem>
+                        <SelectItem value="SCHEDULE">Schedule</SelectItem>
+                        <SelectItem value="PUBLISH">Publish Now</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {formData.action === 'SCHEDULE' && (
-                    <div>
-                      <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-                        Schedule Date & Time
-                      </label>
+                    <div className="space-y-2">
+                      <Label>Date & Time</Label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#E0E0E0]/50" />
-                        <input
+                        <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
                           type="datetime-local"
+                          className="pl-9"
                           value={formData.scheduledAt}
-                          onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                          className="w-full pl-10 pr-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-                          step="1"
+                          onChange={e => setFormData({ ...formData, scheduledAt: e.target.value })}
                         />
-                      </div>
-                      <div className="text-xs text-[#E0E0E0]/50 mt-1">
-                        Select when you want this post to be published. You can choose any date and time, including past dates.
                       </div>
                     </div>
                   )}
+                </div>
+              </form>
+            </div>
 
-                  <div className="flex gap-3 pt-4">
-                    {post && onDelete && (
-                      <Button 
-                        type="button" 
-                        onClick={handleDelete}
-                        disabled={isSubmitting || isDeleting}
-                        variant="outline"
-                        className="border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-500/50"
-                      >
-                        {isDeleting ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400 mr-2"></div>
-                            Archiving...
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Archive
-                          </>
-                        )}
-                      </Button>
-                    )}
-                    <Button type="submit" disabled={isSubmitting || isDeleting} className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#050505] mr-2"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Post'
-                      )}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      onClick={handleClose}
-                      disabled={isSubmitting || isDeleting}
-                      variant="outline"
-                      className="border-white/10 text-[#E0E0E0]/70 hover:text-[#64FFDA] hover:border-[#64FFDA]"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </div>
+            {/* Preview Sidebar */}
+            <div className="md:w-80 border-l pl-6 hidden md:block space-y-4">
+              <Label className="mb-2 block">Live Preview</Label>
+              <TwitterPreview
+                content={formData.content}
+                type={formData.type}
+                username={user?.username}
+                displayName={user?.displayName}
+                profileImageUrl={user?.profileImageUrl}
+              />
             </div>
           </div>
-        </div>
-      </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            {post && onDelete && (
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={handleDelete}
+                disabled={isSubmitting || isDeleting}
+                className="mr-auto"
+              >
+                {isDeleting ? 'Archiving...' : <><Trash2 className="h-4 w-4 mr-2" /> Archive</>}
+              </Button>
+            )}
+
+            <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
+            <Button type="submit" form="post-form" disabled={isSubmitting || isDeleting}>
+              {isSubmitting ? 'Saving...' : 'Save Post'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AiGenerationDialog
         isOpen={showAiDialog}

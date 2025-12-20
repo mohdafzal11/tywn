@@ -5,14 +5,14 @@ import { AuthGuard } from '@/components/auth-guard'
 import { PersonalityForm } from '@/components/personality-form'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Brain } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
 import { Personality } from "@/types"
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function PersonalitiesPage() {
- 
   const { user } = useUser()
   const [personalities, setPersonalities] = useState<Personality[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,9 +31,7 @@ export default function PersonalitiesPage() {
   const fetchPersonalities = async () => {
     try {
       const response = await fetch('/api/personalities')
-      if (!response.ok) {
-        throw new Error('Failed to fetch personalities')
-      }
+      if (!response.ok) throw new Error('Failed to fetch')
       const data = await response.json()
       setPersonalities(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -43,8 +41,6 @@ export default function PersonalitiesPage() {
       setLoading(false)
     }
   }
-
-
 
   const handleCreate = () => {
     setEditingPersonality(null)
@@ -68,43 +64,29 @@ export default function PersonalitiesPage() {
     if (deleteDialog.personalityId) {
       try {
         const response = await fetch(`/api/personalities/${deleteDialog.personalityId}`, { method: 'DELETE' })
-        
-        if (response.ok) {
-          fetchPersonalities()
-        } else {
-          const responseData = await response.json()
-          console.error('DELETE request failed:', responseData)
-        }
+        if (response.ok) fetchPersonalities()
       } catch (error) {
-        console.error('Error deactivating personality:', error)
+        console.error('Error:', error)
       }
     }
     setDeleteDialog({ isOpen: false, personalityId: null, personalityName: "" })
   }
 
-  const cancelDelete = () => {
-    setDeleteDialog({ isOpen: false, personalityId: null, personalityName: "" })
-  }
+  const cancelDelete = () => setDeleteDialog({ isOpen: false, personalityId: null, personalityName: "" })
 
   const handleFormSubmit = async (data: any) => {
     try {
-      if (editingPersonality) {
-        await fetch(`/api/personalities/${editingPersonality.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-      } else {
-        await fetch('/api/personalities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-      }
+      const url = editingPersonality ? `/api/personalities/${editingPersonality.id}` : '/api/personalities'
+      const method = editingPersonality ? 'PUT' : 'POST'
+      await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
       setShowForm(false)
       fetchPersonalities()
     } catch (error) {
-      console.error('Error saving personality:', error)
+      console.error('Error saving:', error)
     }
   }
 
@@ -112,7 +94,7 @@ export default function PersonalitiesPage() {
     return (
       <AuthGuard>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#64FFDA]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </AuthGuard>
     )
@@ -120,11 +102,14 @@ export default function PersonalitiesPage() {
 
   return (
     <AuthGuard>
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[#E0E0E0] glow">Personalities</h1>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Personalities</h1>
+            <p className="text-muted-foreground">Manage your AI persona configurations.</p>
+          </div>
           {user?.role === 'ADMIN' && (
-            <Button onClick={handleCreate} className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
+            <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Add Personality
             </Button>
@@ -141,80 +126,59 @@ export default function PersonalitiesPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {personalities.map((personality) => (
-            <Card key={personality.id} className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  {personality.profileImageUrl ? (
-                    <img
-                      src={personality.profileImageUrl}
-                      alt={personality.name}
-                      className="w-12 h-12 rounded-full object-cover mr-3"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#64FFDA] to-[#9E4BFF] flex items-center justify-center mr-3">
-                      <Brain className="h-6 w-6 text-[#050505]" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-lg font-semibold text-[#E0E0E0]">{personality.name}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      personality.isActive 
-                        ? 'bg-[#64FFDA]/20 text-[#64FFDA]' 
-                        : 'bg-red-500/20 text-red-500'
-                    }`}>
+            <Card key={personality.id} className="overflow-hidden flex flex-col">
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarImage src={personality.profileImageUrl} alt={personality.name} />
+                    <AvatarFallback><Brain className="h-4 w-4" /></AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <CardTitle className="text-base">{personality.name}</CardTitle>
+                    <Badge variant={personality.isActive ? "default" : "secondary"} className="text-[10px] px-2 py-0">
                       {personality.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
-                
+
                 {user?.role === 'ADMIN' && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(personality)}
-                      className="text-[#E0E0E0]/70 hover:text-[#64FFDA]"
-                    >
+                  <div className="flex gap-1 -mr-2">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(personality)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(personality)}
-                      className="text-[#E0E0E0]/70 hover:text-red-500"
-                    >
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(personality)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
-              </div>
-              
-              <p className="text-sm text-[#E0E0E0]/70 mb-3 line-clamp-3">
-                {personality.prompt}
-              </p>
-              
-              {personality.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {personality.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="text-xs px-2 py-1 bg-[#1a1a1a] text-[#64FFDA] rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+              </CardHeader>
+
+              <CardContent className="mt-4 flex-1">
+                <CardDescription className="line-clamp-3 text-sm">
+                  {personality.prompt}
+                </CardDescription>
+
+                {personality.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+                    {personality.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="font-normal">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
             </Card>
           ))}
         </div>
 
         {personalities.length === 0 && !showForm && (
-          <div className="text-center py-12">
-            <Brain className="h-12 w-12 text-[#E0E0E0]/30 mx-auto mb-4" />
-            <p className="text-[#E0E0E0]/50">No personalities found</p>
+          <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+            <Brain className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium">No personalities found</h3>
+            <p className="text-sm text-muted-foreground mb-4">Get started by creating your first AI personality.</p>
             {user?.role === 'ADMIN' && (
-              <Button onClick={handleCreate} className="mt-4 bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
+              <Button onClick={handleCreate} variant="secondary">
                 <Plus className="mr-2 h-4 w-4" />
                 Create First Personality
               </Button>
@@ -222,7 +186,7 @@ export default function PersonalitiesPage() {
           </div>
         )}
       </div>
-      
+
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
         title="Deactivate Personality"

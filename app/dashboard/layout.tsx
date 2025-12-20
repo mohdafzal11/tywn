@@ -1,20 +1,10 @@
-import { Sidebar } from "@/components/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Dashboard - Tywn",
   description: "View your Tywn dashboard with analytics, user statistics, and activity overview.",
-  keywords: ["dashboard", "analytics", "stats", "tywn", "overview"],
-  openGraph: {
-    title: "Dashboard - Tywn",
-    description: "View your Tywn dashboard with analytics, user statistics, and activity overview.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Dashboard - Tywn",
-    description: "View your Tywn dashboard with analytics, user statistics, and activity overview.",
-  },
 }
 
 export default function Layout({
@@ -23,13 +13,16 @@ export default function Layout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen bg-[#050505]">
-      <Sidebar />
+    <SidebarProvider>
+      <AppSidebar />
       <main className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="flex h-16 items-center border-b px-4">
+          <SidebarTrigger />
+        </div>
+        <div className="p-4 md:p-8 pt-6">
           {children}
         </div>
       </main>
-    </div>
+    </SidebarProvider>
   )
 }

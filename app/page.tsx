@@ -1,174 +1,123 @@
 import Link from "next/link";
+import { ArrowRight, MessageSquare, Calendar, Users, Shield, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Tywn - Connect, Create, Collaborate",
-  description: "Welcome to Tywn - your modern platform for social connection, collaboration, and creative expression.",
-  keywords: ["social media", "connection", "collaboration", "tywn", "platform"],
-  openGraph: {
-    title: "Tywn - Connect, Create, Collaborate",
-    description: "Welcome to Tywn - your modern platform for social connection, collaboration, and creative expression.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Tywn - Connect, Create, Collaborate",
-    description: "Welcome to Tywn - your modern platform for social connection, collaboration, and creative expression.",
-  },
-};
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative flex min-h-screen items-center justify-center px-4 py-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#64FFDA]/10 via-transparent to-[#9E4BFF]/10 pointer-events-none" />
-        
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <div className="mb-8">
-            <h1 className="mb-6 text-5xl font-bold tracking-tight text-foreground glow md:text-7xl">
-              Welcome to <span className="text-accent">Tywn</span>
-            </h1>
-            <p className="mx-auto mb-8 max-w-2xl text-lg text-[#E0E0E0]/80 md:text-xl">
-              Connect with friends, collaborate on projects, and express your creativity in a modern, intuitive platform designed for meaningful interactions.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+      <section className="relative py-24 lg:py-32 overflow-hidden">
+        <div className="container px-4 md:px-6 relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
+          <Badge className="mb-6 px-4 py-1.5 text-sm font-normal rounded-full transition-all hover:bg-secondary" variant="secondary">
+            v1.0 Now Available
+          </Badge>
+          <h1 className="mb-8 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50">
+            Connect, Create, <br className="hidden sm:inline" />
+            Collaborate
+          </h1>
+          <p className="mb-10 max-w-[42rem] text-lg text-muted-foreground sm:text-xl leading-relaxed">
+            Tywn is your modern platform for social connection and creative expression.
+            Experience a new standard of community interaction.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link href="/login">
-              <Button size="lg" className="btn hover:scale-105 hover:bg-[#64FFDA] hover:shadow-[0_0_25px_#64FFDA] transition-all duration-300">
+              <Button size="lg" className="h-12 px-8 text-base w-full sm:w-auto rounded-full">
                 Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <Link href="/dashboard">
-              <Button variant="outline" size="lg" className="btn-outline">
+              <Button variant="outline" size="lg" className="h-12 px-8 text-base w-full sm:w-auto rounded-full border-muted-foreground/20">
                 View Dashboard
               </Button>
             </Link>
           </div>
         </div>
+
+        {/* Minimal Background Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-primary/5 blur-[120px] rounded-full -z-10" />
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-foreground glow md:text-4xl">
-              Everything You Need to Connect
+      <section className="py-32 bg-muted/20">
+        <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+          <div className="mb-20 text-center max-w-2xl mx-auto">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+              Engineered for Connection
             </h2>
-            <p className="text-lg text-[#E0E0E0]/70">
-              Powerful features designed for modern social interaction
+            <p className="text-lg text-muted-foreground">
+              Powerful features wrapped in a refined, minimalist interface.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Real-time Chat</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Instant messaging with friends and groups
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Stay connected with real-time messaging, file sharing, and rich media support.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="group relative p-8 bg-background rounded-3xl border border-muted/50 hover:border-primary/10 transition-all hover:shadow-lg">
+              <div className="mb-6 w-12 h-12 rounded-2xl bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <MessageSquare className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Real-time Chat</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Seamless instant messaging with friends and groups. Share media, files, and thoughts instantly.
+              </p>
+            </div>
 
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Calendar Integration</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Schedule events and never miss a moment
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Organize your life with integrated calendar, reminders, and event planning tools.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="group relative p-8 bg-background rounded-3xl border border-muted/50 hover:border-primary/10 transition-all hover:shadow-lg">
+              <div className="mb-6 w-12 h-12 rounded-2xl bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <Zap className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Fast & Collaborative</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Built for speed. Collaborate on documents and projects in real-time with zero latency.
+              </p>
+            </div>
 
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Collaboration Tools</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Work together seamlessly
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Share documents, manage projects, and collaborate with your team efficiently.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Privacy First</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Your data, your control
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Advanced privacy controls and encryption to keep your information secure.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Customizable</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Make it yours
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Personalize your experience with themes, layouts, and custom profiles.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card frosted">
-              <CardHeader>
-                <CardTitle className="text-accent">Cross-Platform</CardTitle>
-                <CardDescription className="text-[#E0E0E0]/70">
-                  Connect anywhere
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#E0E0E0]/60">
-                  Access Tywn from any device with our responsive web and mobile apps.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="group relative p-8 bg-background rounded-3xl border border-muted/50 hover:border-primary/10 transition-all hover:shadow-lg">
+              <div className="mb-6 w-12 h-12 rounded-2xl bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Privacy First</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Your data is yours. End-to-end encryption and advanced privacy controls keep you secure.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="card frosted neon-border p-12">
-            <h2 className="mb-4 text-3xl font-bold text-foreground glow md:text-4xl">
-              Ready to Get Started?
-            </h2>
-            <p className="mb-8 text-lg text-[#E0E0E0]/70">
-              Join thousands of users already connecting on Tywn
-            </p>
-            <Link href="/login">
-              <Button size="lg" className="btn">
-                Sign Up Now
-              </Button>
-            </Link>
+      <section className="py-32">
+        <div className="container px-4 md:px-6 max-w-4xl mx-auto">
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-primary px-8 py-24 text-center shadow-2xl">
+            <div className="relative z-10 mx-auto max-w-2xl">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight text-primary-foreground sm:text-5xl">
+                Ready to join?
+              </h2>
+              <p className="mb-10 text-lg text-primary-foreground/80">
+                Start your journey with Tywn today. No credit card required.
+              </p>
+              <Link href="/login">
+                <Button size="lg" variant="secondary" className="h-14 px-10 text-lg rounded-full shadow-lg">
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+
+            {/* Subtle Pattern */}
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/20 blur-3xl rounded-full" />
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-white/20 blur-3xl rounded-full" />
           </div>
         </div>
       </section>
+
+      {/* Footer Minimal */}
+      <footer className="py-12 border-t">
+        <div className="px-4 md:px-6 text-center text-sm text-muted-foreground">
+          <p>© 2024 Tywn Inc. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

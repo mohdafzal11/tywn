@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 interface PersonalityFormProps {
   personality?: any
@@ -28,70 +31,66 @@ export function PersonalityForm({ personality, onSubmit, onCancel }: Personality
   }
 
   return (
-    <Card className="p-6 mb-4">
-      <h2 className="text-xl font-semibold text-[#E0E0E0] mb-4">
-        {personality ? "Edit Personality" : "Add Personality"}
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Name
-          </label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-            required
-          />
-        </div>
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>{personality ? "Edit Personality" : "Add Personality"}</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              placeholder="e.g. Friendly Assistant"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Profile Image URL
-          </label>
-          <input
-            type="url"
-            value={formData.profileImageUrl}
-            onChange={(e) => setFormData({ ...formData, profileImageUrl: e.target.value })}
-            className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">Profile Image URL</Label>
+            <Input
+              id="imageUrl"
+              type="url"
+              value={formData.profileImageUrl}
+              onChange={(e) => setFormData({ ...formData, profileImageUrl: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Prompt
-          </label>
-          <textarea
-            value={formData.prompt}
-            onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
-            className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA] h-32 resize-none"
-            required
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="prompt">Prompt</Label>
+            <Textarea
+              id="prompt"
+              value={formData.prompt}
+              onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+              className="min-h-[120px]"
+              required
+              placeholder="Define the personality's behavior..."
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Tags (comma-separated)
-          </label>
-          <input
-            type="text"
-            value={formData.tags}
-            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-            className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-            placeholder="friendly, professional, casual"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <Button type="submit" className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
-            {personality ? "Update" : "Create"}
-          </Button>
-          <Button type="button" onClick={onCancel} variant="outline">
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              type="text"
+              value={formData.tags}
+              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              placeholder="friendly, professional, casual"
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-        </div>
+          <Button type="submit">
+            {personality ? "Update Personality" : "Create Personality"}
+          </Button>
+        </CardFooter>
       </form>
     </Card>
   )

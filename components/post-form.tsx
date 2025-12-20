@@ -2,8 +2,11 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Image as ImageIcon, Clock } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageIcon, Clock } from "lucide-react"
 
 interface PostFormProps {
   post?: any
@@ -13,104 +16,59 @@ interface PostFormProps {
 
 export function PostForm({ post, onSubmit, onCancel }: PostFormProps) {
   const [formData, setFormData] = useState({
-    text: post?.text || "",
+    content: post?.content || "",
     image: post?.image || "",
-    scheduledAt: post?.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : "",
-    status: post?.status || 'DRAFT'
+    scheduledAt: post?.scheduledAt || ""
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const submitData = {
-      ...formData,
-      scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt).toISOString() : null
-    }
-    onSubmit(submitData)
-  }
-
+  // Basic mock form for legacy compatibility, but styled with new UI
   return (
-    <Card className="p-6 mb-4">
-      <h2 className="text-xl font-semibold text-[#E0E0E0] mb-4">
-        {post ? "Edit Post" : "Create Post"}
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Post Text
-          </label>
-          <textarea
-            value={formData.text}
-            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-            className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA] h-32 resize-none"
-            placeholder="What's on your mind?"
-            required
-            maxLength={280}
-          />
-          <div className="text-xs text-[#E0E0E0]/50 mt-1">
-            {formData.text.length}/280 characters
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Image URL (optional)
-          </label>
-          <div className="relative">
-            <ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#E0E0E0]/50" />
-            <input
-              type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-              placeholder="https://example.com/image.jpg"
+    <Card>
+      <CardHeader>
+        <CardTitle>{post ? "Edit Post" : "Create Post"}</CardTitle>
+      </CardHeader>
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData) }}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Content</Label>
+            <Textarea
+              value={formData.content}
+              onChange={e => setFormData({ ...formData, content: e.target.value })}
+              placeholder="What's on your mind?"
+              className="min-h-[100px]"
             />
           </div>
-        </div>
 
-        {formData.image && (
-          <div>
-            <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-              Image Preview
-            </label>
-            <img
-              src={formData.image}
-              alt="Preview"
-              className="max-w-full h-auto rounded-lg border border-white/10 max-h-48 object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
-            />
+          <div className="space-y-2">
+            <Label>Image URL (Optional)</Label>
+            <div className="relative">
+              <ImageIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                value={formData.image}
+                onChange={e => setFormData({ ...formData, image: e.target.value })}
+              />
+            </div>
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm font-medium text-[#E0E0E0]/70 mb-2">
-            Schedule Post (optional)
-          </label>
-          <div className="relative">
-            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#E0E0E0]/50" />
-            <input
-              type="datetime-local"
-              value={formData.scheduledAt}
-              onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg text-[#E0E0E0] focus:outline-none focus:border-[#64FFDA]"
-              min={new Date().toISOString().slice(0, 16)}
-            />
+          <div className="space-y-2">
+            <Label>Schedule (Optional)</Label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="datetime-local"
+                className="pl-9"
+                value={formData.scheduledAt}
+                onChange={e => setFormData({ ...formData, scheduledAt: e.target.value })}
+              />
+            </div>
           </div>
-          <div className="text-xs text-[#E0E0E0]/50 mt-1">
-            Leave empty to save as draft
-          </div>
-        </div>
 
-        <div className="flex gap-3">
-          <Button type="submit" className="bg-[#64FFDA] text-[#050505] hover:bg-[#64FFDA]/90">
-            {post ? "Update" : (formData.scheduledAt ? "Schedule" : "Create")}
-          </Button>
-          <Button type="button" onClick={onCancel} variant="outline">
-            Cancel
-          </Button>
-        </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+            <Button type="submit">Save Post</Button>
+          </div>
+        </CardContent>
       </form>
     </Card>
   )

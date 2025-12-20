@@ -1,7 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -22,30 +29,18 @@ export function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <Card className="p-6 max-w-md w-full mx-4 bg-black">
-        <h2 className="text-xl font-semibold text-[#E0E0E0] mb-4">{title}</h2>
-        <p className="text-[#E0E0E0]/70 mb-6">{message}</p>
-        
-        <div className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="border-white/20 text-[#E0E0E0] hover:bg-white/10"
-          >
-            {cancelText}
-          </Button>
-          <Button
-            onClick={onConfirm}
-            className="bg-red-500 text-white hover:bg-red-600"
-          >
-            {confirmText}
-          </Button>
-        </div>
-      </Card>
-    </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>{cancelText}</Button>
+          <Button variant="destructive" onClick={onConfirm}>{confirmText}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
