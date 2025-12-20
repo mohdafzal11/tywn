@@ -130,7 +130,7 @@ export default function PersonalitiesPage() {
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-4">
                   <Avatar>
-                    <AvatarImage src={personality.profileImageUrl} alt={personality.name} />
+                    <AvatarImage src={personality.profileImageUrl || undefined} alt={personality.name} />
                     <AvatarFallback><Brain className="h-4 w-4" /></AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">
