@@ -206,52 +206,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="border-muted bg-muted/10">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Scheduler Status
-                </CardTitle>
-                <CardDescription>
-                  {schedulerStatus.isRunning
-                    ? 'System is active and processing scheduled posts.'
-                    : 'Scheduler is currently paused.'}
-                </CardDescription>
-              </div>
-              <Badge variant={schedulerStatus.isRunning ? "default" : "destructive"} className="px-3 py-1">
-                {schedulerStatus.isRunning ? 'Running' : 'Stopped'}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-background/50 p-4 rounded-lg border">
-              <div className="text-sm text-muted-foreground">
-                {schedulerStatus.nextCheck && (
-                  <span className="flex items-center gap-2">
-                    Last check: {new Date().toLocaleTimeString()} • Next check: <span className="font-medium text-foreground">{new Date(schedulerStatus.nextCheck).toLocaleTimeString()}</span>
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                {!schedulerStatus.isRunning ? (
-                  <Button variant="outline" size="sm" onClick={() => handleSchedulerAction('start')} className="w-full sm:w-auto hover:bg-green-500/10 hover:text-green-600 border-green-200 dark:border-green-900">
-                    <Play className="mr-2 h-4 w-4" /> Start
-                  </Button>
-                ) : (
-                  <Button variant="outline" size="sm" onClick={() => handleSchedulerAction('stop')} className="w-full sm:w-auto hover:bg-destructive/10 hover:text-destructive border-destructive/30">
-                    <Square className="mr-2 h-4 w-4" /> Stop
-                  </Button>
-                )}
-                <Button variant="secondary" size="sm" onClick={() => handleSchedulerAction('process')} className="w-full sm:w-auto">
-                  <RefreshCw className="mr-2 h-4 w-4" /> Process
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+    
         {showDialog && (
           <PostDialog
             post={editingPost}

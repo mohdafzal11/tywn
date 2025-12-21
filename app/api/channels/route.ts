@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { TwitterService } from "@/lib/twitter-service";
+import { cookies } from 'next/headers';
 
 type ExtendedChannel = {
   id: string;
@@ -13,29 +15,66 @@ type ExtendedChannel = {
   updatedAt: Date;
 };
 
+// Helper function to get authenticated user from either cookie system
+async function getAuthenticatedUser(req: NextRequest) {
+  // Method 1: Try x_user cookie (Twitter OAuth)
+  const userCookie = req.cookies.get("x_user");
+  if (userCookie) {
+    try {
+      const user = JSON.parse(userCookie.value);
+      // Find user in database by twitterId
+      const dbUser = await prisma.user.findUnique({
+        where: { twitterId: user.id }
+      });
+      return dbUser;
+    } catch (e) {
+      console.error('Error parsing x_user cookie:', e);
+    }
+  }
+
+  // Method 2: Try session cookie (alternative auth)
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('session')?.value;
+  if (sessionCookie) {
+    try {
+      const sessionData = JSON.parse(decodeURIComponent(sessionCookie));
+      if (sessionData.userId) {
+        // Find user in database by userId
+        const dbUser = await prisma.user.findUnique({
+          where: { id: sessionData.userId }
+        });
+        return dbUser;
+      }
+    } catch (e) {
+      console.error('Error parsing session cookie:', e);
+    }
+  }
+
+  return null;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const userCookie = req.cookies.get("x_user");
-    if (!userCookie) {
+    const dbUser = await getAuthenticatedUser(req);
+    
+    if (!dbUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = JSON.parse(userCookie.value);
-    
-    // Find user in database
-    const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id },
+    // Get user with channels
+    const userWithChannels = await prisma.user.findUnique({
+      where: { id: dbUser.id },
       include: {
         channels: true
       }
     });
 
-    if (!dbUser) {
+    if (!userWithChannels) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Convert date strings back to Date objects
-    const channels = (dbUser.channels as ExtendedChannel[]).map(channel => {
+    const channels = (userWithChannels.channels as ExtendedChannel[]).map(channel => {
       const channelData = channel as ExtendedChannel;
       if (channelData.configuration) {
         const config = { ...channelData.configuration };
@@ -59,14 +98,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Get user from cookies
-    const userCookie = req.cookies.get("x_user");
-    if (!userCookie) {
+    const dbUser = await getAuthenticatedUser(req);
+    
+    if (!dbUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = JSON.parse(userCookie.value);
-    const { type, name, settings, configuration } = await req.json();
+    const { type, name, settings, configuration, validateCredentials = true } = await req.json();
 
     // Validate input
     if (!type || !name) {
@@ -77,13 +115,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid channel type" }, { status: 400 });
     }
 
-    // Find user in database
-    const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id }
-    });
+    // Validate credentials if provided and validation is requested
+    if (validateCredentials && settings && type === 'twitter') {
+      const { apiKey, apiSecret, accessToken, accessTokenSecret } = settings;
+      
+      if (apiKey && apiSecret && accessToken && accessTokenSecret) {
+        const validationResult = await TwitterService.validateCredentials({
+          apiKey,
+          apiSecret,
+          accessToken,
+          accessTokenSecret
+        });
 
-    if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+        if (!validationResult.valid) {
+          return NextResponse.json({ 
+            error: "Invalid credentials",
+            details: validationResult.error || "Credentials validation failed"
+          }, { status: 400 });
+        }
+      }
     }
 
     // Create new channel
@@ -110,27 +160,17 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    // Get user from cookies
-    const userCookie = req.cookies.get("x_user");
-    if (!userCookie) {
+    const dbUser = await getAuthenticatedUser(req);
+    
+    if (!dbUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = JSON.parse(userCookie.value);
-    const { channelId, settings, configuration } = await req.json();
+    const { channelId, settings, configuration, validateCredentials = true } = await req.json();
 
     // Validate input
     if (!channelId) {
       return NextResponse.json({ error: "Channel ID is required" }, { status: 400 });
-    }
-
-    // Find user in database
-    const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id }
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Verify channel belongs to user
@@ -143,6 +183,28 @@ export async function PUT(req: NextRequest) {
 
     if (!channel) {
       return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+    }
+
+    // Validate credentials if provided and validation is requested
+    if (validateCredentials && settings && channel.type === 'twitter') {
+      const { apiKey, apiSecret, accessToken, accessTokenSecret } = settings;
+      
+      // Only validate if all credentials are provided
+      if (apiKey && apiSecret && accessToken && accessTokenSecret) {
+        const validationResult = await TwitterService.validateCredentials({
+          apiKey,
+          apiSecret,
+          accessToken,
+          accessTokenSecret
+        });
+
+        if (!validationResult.valid) {
+          return NextResponse.json({ 
+            error: "Invalid credentials",
+            details: validationResult.error || "Credentials validation failed"
+          }, { status: 400 });
+        }
+      }
     }
 
     // Update channel settings and configuration
@@ -177,27 +239,17 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    // Get user from cookies
-    const userCookie = req.cookies.get("x_user");
-    if (!userCookie) {
+    const dbUser = await getAuthenticatedUser(req);
+    
+    if (!dbUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = JSON.parse(userCookie.value);
     const { searchParams } = new URL(req.url);
     const channelId = searchParams.get('id');
 
     if (!channelId) {
       return NextResponse.json({ error: "Channel ID is required" }, { status: 400 });
-    }
-
-    // Find user in database
-    const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id }
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Verify channel belongs to user
